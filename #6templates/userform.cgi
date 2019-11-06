@@ -1,4 +1,4 @@
- #!/usr/bin/perl
+#!/usr/bin/perl
 
   use strict;
   use warnings;
@@ -6,15 +6,12 @@
   use DBI;
   use CGI;
 
-  require "./templ.pm";
+  use lib '/var/www/html/work';
+  use templ;
 
   my $cgi = CGI->new;
 
   print $cgi->header("text/html");
- 
-  #парсинг шаблонів
-  my $cards = Templ::tmpl("content/cards.tpl");
-  my $test = Templ::tmpl("content/test.tpl");
 
   #Змінні-параметри підключення до бази данних
   my $host = "localhost"; 
@@ -25,19 +22,22 @@
 
   my $db = "users";
 
-  print "Content-type: text/html\n\n";
 
   #Підключення до БД
-  $dbh = DBI->connect("DBI:mysql:$db:$host:$port", 
+  my  $dbh = DBI->connect("DBI:mysql:$db:$host:$port", 
   $user,$pass);
 
-  $sql = $dbh->prepare("SELECT name, address, email FROM users");
+  my  $sql = $dbh->prepare("SELECT name, address, email FROM users");
 
-  $out = $sql->execute()
+  my $out = $sql->execute()
   or die "Невозможно выполнить sql: $sql->errstr";
 
+   #парсинг шаблонів
+  my $cards = Templ::load_tpl("content/cards.tpl");
+  my $test = Templ::load_tpl("content/test.tpl");
+
   my $bodycard;
-  while (my @user = $query->fetchrow_array()) {
+  while (my @user =$sql->fetchrow_array()) {
     my ($name, $addr, $email) = @user;
   
   $bodycard .= Templ::replace($test, (      
@@ -52,3 +52,4 @@
     BODYCARD => $bodycard
   ));
 
+  1; 
