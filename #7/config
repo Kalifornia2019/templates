@@ -1,0 +1,20 @@
+#Конфігураційний файл модуля
+
+#Список функцій адміністратора
+%FUNCTIONS_LIST = (
+  "01:0:$lang{ICARDS}:cards_main:"              => 5,
+  #додаємо новий модуль users_add
+  "02:1:$lang{ADD}:users_add:"                  => 5,
+);
+
+#Список функцій користувача
+%USER_FUNCTION_LIST = (
+  "01:0:$lang{ICARDS}:cards_user_payment:"  => 0,
+);
+
+#Список функцій в періодичних процессах
+%PERIODIC = (
+  daily   => [ 'cards_bruteforce_clean', 'cards_periodic' ]
+);
+
+1;
