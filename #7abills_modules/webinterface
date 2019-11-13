@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+
+=head1 NAME
+ Abills users
+=cut
+
+use strict;
+use warnings;
+use Users::db::Users;
+
+our ($db, $admin, %conf, %lang, $html);
+my $User_ab= Users->new($db, $admin, \%conf);
+
+#**********************************************************
+
+=head2 user_list()
+  show users,
+  can add, change, delete
+  Returns:
+  1
+=cut
+
+#**********************************************************
+sub user_list {
+
+  if ($FORM{add_form}) {
+    $html->tpl_show(
+      _include('user_add', 'Users'),
+      {
+        SUBMIT => $html->form_input('add', $lang{ADD}, { TYPE => 'submit' }),
+        TITLE  => $lang{ADD}
+      }
+    );
+  }
+#Adding a new user
+  if ($FORM{add}) {
+    $User_ab->add(
+      {
+        NAME    => $FORM{NAME},
+        ADDRESS => $FORM{ADDRESS},
+        EMAIL   => $FORM{EMAIL}
+      }
+    );
+    if (!$User_ab->{errno}) {
+      $html->message('info', $lang{SUCCESS});
+    }
+    else {
+      $html->message('err', $lang{ERROR}, $User_ab->{errno} . " : " . $User_ab->{errstr});
+    }
+  }
+#Delete a user
+  if ($FORM{del}) {
+    $User_ab->del($FORM{del});
+    if (!$User_ab->{errno}) {
+      $html->message('info', $lang{SUCCESS});
+    }
+    else {
+      $html->message('err', $lang{ERROR}, $User_ab->{errno} . " : " . $User_ab->{errstr});
+    }
+  }
+#Change a user
+  if ($FORM{chg}) {
+    if ($FORM{change}) {
+      $User_ab->change(
+        {
+          ID      => $FORM{chg},
+          NAME    => $FORM{NAME},
+          ADDRESS => $FORM{ADDRESS},
+          EMAIL   => $FORM{EMAIL}
+        }
+      );
+      if (!$User_ab->{errno}) {
+        $html->message('info', $lang{SUCCESS});
+      }
+      else {
+        $html->message('err', $lang{ERROR}, $User_ab->{errno} . " : " . $User_ab->{errstr});
+      }
+    }
+    else {
+      my $doc = $User_ab->info($FORM{chg});
+      $html->tpl_show(
+        _include('user_add', 'Users'),
+        {
+          NAME    => $doc->{NAME},
+          ADDRESS => $doc->{ADDRESS},
+          EMAIL   => $doc->{EMAIL},
+          SUBMIT  => $html->form_input('change', $lang{CHANGE}, { TYPE => 'submit' }),
+          TITLE   => $lang{CHANGE},
+          ID      => $html->form_input('chg', $FORM{chg}, { TYPE => 'hidden' }),
+        }
+      );
+    }
+  }
+
+#Table result work with DB users_test
+  result_former(
+    {
+      INPUT_DATA      => $User_ab,
+      FUNCTION        => 'list',
+      BASE_FIELDS     => 0,
+      DEFAULT_FIELDS  => ['ADDRESS,NAME,EMAIL'],
+      FUNCTION_FIELDS => 'del, change',
+      EXT_TITLES      => {
+        'address' => 'ADDRESS',
+        'name'    => 'NAME',
+        'email'   => 'EMAIL'
+      },
+      TABLE => {
+        width   => '100%',
+        caption => "Users",
+        qs      => $pages_qs,
+        ID      => 'user_list',
+        MENU    => "Add url:index=" . $index . '&add_form=1:add'
+      },
+      MAKE_ROWS     => 1,
+      SEARCH_FORMER => 1,
+      MODULE        => 'Users',
+      TOTAL         => 1
+    }
+  );
+
+  return 1;
+}
+
+1;
