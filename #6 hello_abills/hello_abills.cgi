@@ -47,20 +47,8 @@ my $db = Abills::SQL->connect(
   }
 );
 
-# Turn on the dictionary
-if ($html->{language} ne 'english') {
-  do $libpath . "/language/english.pl";
-}
-
-if (-f $libpath . "/language/$html->{language}.pl") {
-  do $libpath . "/language/$html->{language}.pl";
-}
-
 # Module connection
 require Abills::Templates;
-
-# Include a configuration file
-Conf->new($db, undef, \%conf);
 
 $html->{METATAGS} = templates('metatags_client');
 
